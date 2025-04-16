@@ -7,37 +7,50 @@ export default function User() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const { setNotification } = useStateContext();
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    per_page: 10,
+    total: 0,
+  });
 
   useEffect(() => {
-    getUsers();
+    getUsers(1);
   }, []);
 
-  const getUsers = () => {
+  const getUsers = (page) => {
     setLoading(true);
     axiosClient
-      .get("/users")
+      .get(`/users?page=${page}`)
       .then(({ data }) => {
-        setTimeout(() => {
-          setLoading(false);
-          setUsers(data.data);
-        }, 1000);
+        setLoading(false);
+        setUsers(data.data);
+        setPagination({
+          current_page: data.meta.current_page,
+          last_page: data.meta.last_page,
+          per_page: data.meta.per_page,
+          total: data.meta.total,
+        });
       })
       .catch((error) => {
-        setTimeout(() => {
-          console.log(error);
-          setLoading(false);
-        }, 1000);
+        console.error(error);
+        setLoading(false);
       });
+  };
+
+  const onPageChange = (page) => {
+    getUsers(page);
   };
 
   const deleteUser = (id) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       axiosClient.delete(`/users/${id}`).then(() => {
         setNotification("User was successfully deleted");
-        getUsers();
+        getUsers(pagination.current_page);
       });
     }
   };
+
   return (
     <div>
       <div
@@ -56,11 +69,13 @@ export default function User() {
         <div className="card-body">
           <table>
             <thead>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Created at</th>
-              <th>Actions</th>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Created at</th>
+                <th>Actions</th>
+              </tr>
             </thead>
             {loading && (
               <tbody>
@@ -96,6 +111,38 @@ export default function User() {
               </tbody>
             )}
           </table>
+          <div className="pagination">
+            <div className="pagination-info">
+              Showing {users.length} of {pagination.total} users
+            </div>
+            <div className="pagination-buttons">
+              <button
+                className="btn-pagination"
+                disabled={pagination.current_page === 1}
+                onClick={() => onPageChange(pagination.current_page - 1)}
+              >
+                Previous
+              </button>
+              {[...Array(pagination.last_page)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  className={`btn-pagination ${
+                    pagination.current_page === index + 1 ? "active" : ""
+                  }`}
+                  onClick={() => onPageChange(index + 1)}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                className="btn-pagination"
+                disabled={pagination.current_page === pagination.last_page}
+                onClick={() => onPageChange(pagination.current_page + 1)}
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
