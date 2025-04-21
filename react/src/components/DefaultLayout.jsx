@@ -73,8 +73,8 @@ export default function DefaultLayout() {
             Users
           </Link>
           <Link
-            to="/settings"
-            className={location.pathname === "/settings" ? "active" : ""}
+            to="/profile"
+            className={location.pathname === "/profile" ? "active" : ""}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -107,7 +107,9 @@ export default function DefaultLayout() {
           </div>
           <div className="header-right">
             <div className="user-info">
-              <span>{user.email}</span>
+              <Link to="/profile" className="btn-profile">
+                <span>{user.name}</span>
+              </Link>
               <button onClick={onLogout} className="btn-logout">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
