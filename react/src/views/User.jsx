@@ -44,10 +44,20 @@ export default function User() {
 
   const deleteUser = (id) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      axiosClient.delete(`/users/${id}`).then(() => {
-        setNotification("User was successfully deleted");
-        getUsers(pagination.current_page);
-      });
+      setLoading(true);
+      axiosClient
+        .delete(`/users/${id}`)
+        .then(() => {
+          setNotification("User was successfully deleted");
+          getUsers(pagination.current_page);
+        })
+        .catch((error) => {
+          console.error("Error deleting user:", error);
+          setNotification("Error deleting user. Please try again.");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
   };
 
