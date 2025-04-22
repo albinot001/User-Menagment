@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use App\Models\UserActivity;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -27,6 +29,15 @@ class UserController extends Controller
         $data = $request->validated();
         $data['password'] = bcrypt($data['password']);
         $user = User::create($data);
+
+        // Log activity
+        UserActivity::create([
+            'type' => 'created',
+            'description' => "New user {$user->name} was created",
+            'user_id' => Auth::id(),
+            'target_user_id' => $user->id,
+        ]);
+
         return response(new UserResource($user), 201);
     }
 
@@ -48,6 +59,15 @@ class UserController extends Controller
             $data['password'] = bcrypt($data['password']);
         }
         $user->update($data);
+
+        // Log activity
+        UserActivity::create([
+            'type' => 'updated',
+            'description' => "User {$user->name} updated their profile",
+            'user_id' => Auth::id(),
+            'target_user_id' => $user->id,
+        ]);
+
         return new UserResource($user);
     }
 
@@ -56,6 +76,16 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        $userName = $user->name;
+
+        // Log activity before deletion
+        UserActivity::create([
+            'type' => 'deleted',
+            'description' => "User {$userName} was deleted",
+            'user_id' => Auth::id(),
+            'target_user_id' => null,
+        ]);
+
         $user->delete();
         return response("", 204);
     }

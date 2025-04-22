@@ -5,6 +5,7 @@ import { useStateContext } from "../contexts/ContextProvider";
 
 export default function Login() {
   const [errors, setErrors] = useState(null);
+  const [loading, setLoading] = useState(false);
   const emailRef = useRef();
   const passwordRef = useRef();
   const { setUser, setToken } = useStateContext();
@@ -12,6 +13,7 @@ export default function Login() {
   const handleSubmit = (event) => {
     event.preventDefault();
     setErrors(null);
+    setLoading(true);
 
     const payload = {
       email: emailRef.current.value,
@@ -21,8 +23,10 @@ export default function Login() {
     axiosClient
       .post("/login", payload)
       .then(({ data }) => {
-        setUser(data.user);
-        setToken(data.token);
+        setTimeout(() => {
+          setUser(data.user);
+          setToken(data.token);
+        }, 3000);
       })
       .catch((err) => {
         const response = err.response;
@@ -35,6 +39,7 @@ export default function Login() {
             });
           }
         }
+        setLoading(false);
       });
   };
 
@@ -70,26 +75,69 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="input-icon"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              Email
+            </label>
             <input
               ref={emailRef}
               type="email"
               id="email"
               placeholder="name@company.com"
+              disabled={loading}
             />
           </div>
 
           <div className="input-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="input-icon"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+              Password
+            </label>
             <input
               ref={passwordRef}
               type="password"
               id="password"
               placeholder="••••••••"
+              disabled={loading}
             />
           </div>
 
-          <button className="btn btn-block">Sign in to your account</button>
+          <button className="btn btn-block" disabled={loading}>
+            {loading ? (
+              <span className="button-loading">
+                <div className="loading-spinner"></div>
+                {errors ? "Try again..." : "Signing in..."}
+              </span>
+            ) : (
+              "Sign in to your account"
+            )}
+          </button>
 
           <p className="message">
             Not registered? <Link to="/signup">Create an account</Link>
